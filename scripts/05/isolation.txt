@@ -1,5 +1,5 @@
--- уровни изоляции транзакций
--- создадим табличку для тестов
+-- transaction isolation level
+-- create test table
 \c app
 CREATE TABLE testA (i serial, amount int);
 INSERT INTO testA(amount) VALUES (100), (500);
