@@ -159,18 +159,18 @@ psql
 
 \dt+ bookings.*
 
--- построим список рейсов
+-- build a list of flights
 SELECT  flight_no
 FROM bookings.flights 
 limit 10;
 
--- добавим дату рейса без времени
+-- add the flight date without time
 SELECT  flight_no
 		, scheduled_departure::date as vilet
 FROM bookings.flights 
 limit 10;
 
--- добавим аэропорт вылета
+-- add the departure airport
 SELECT  f.flight_no
 		, f.scheduled_departure::date as vilet
 		, a1.airport_name as FROM
@@ -179,7 +179,7 @@ JOIN bookings.airports as a1
 	on a1.airport_code = f.departure_airport
 limit 10;
 
--- добавим аэропорт прилета и остортируем по дате вылета
+-- add the arrival airport and sort by departure date
 SELECT  f.flight_no
 		, f.scheduled_departure::date as vilet
 		, a1.airport_name as from_air
@@ -192,7 +192,7 @@ JOIN bookings.airports as a2
 order by vilet
 limit 10;
 
--- посчитаем количество проданных билетов
+-- count the number of tickets sold
 -- SELECT * FROM bookings.ticket_flights tf WHERE tf.flight_id = 61;
 
 SELECT  f.flight_no
@@ -211,7 +211,7 @@ GROUP BY f.flight_id, f.flight_no, vilet, from_air, to_air
 ORDER BY vilet
 LIMIT 10;
 
--- посчитаем вместимость
+-- calculate the capacity
 EXPLAIN ANALYZE
 SELECT  f.flight_no
 		, f.scheduled_departure::date as vilet
@@ -232,10 +232,10 @@ GROUP BY f.flight_id, f.flight_no, vilet, from_air, to_air
 ORDER BY vilet
 LIMIT 10;
 
---- ооочень плохой вариант. почему?
+--- very bad query. Why?
 
--- Пооптимизируем
--- 1 вариант
+-- let`s optimize
+-- 1 option
 EXPLAIN ANALYZE WITH vsego AS (
 	SELECT count(s.seat_no) as c, s.aircraft_code
 	FROM bookings.seats s
@@ -260,7 +260,7 @@ GROUP BY f.flight_id, f.flight_no, vilet, from_air, to_air, v.c
 ORDER BY vilet
 LIMIT 10;
 
--- 2 вариант
+-- 2 option
 SELECT  f.flight_no
 		, f.scheduled_departure::date AS vilet
 		, a1.airport_name AS from_air
@@ -278,7 +278,7 @@ GROUP BY f.flight_id, f.flight_no, vilet, from_air, to_air
 ORDER BY vilet
 LIMIT 10;
 
--- наконец
+-- at the end
 SELECT  f.flight_no
 		, f.scheduled_departure::date AS vilet
 		, a1.airport_name AS from_air
@@ -293,7 +293,7 @@ JOIN bookings.airports AS a2
 ORDER BY vilet
 LIMIT 10;
 
--- самый быстрый вариант. есть идеи?
+-- the fastest option. any ideas?
 WITH vsego AS (
 	SELECT count(s.seat_no) as c, s.aircraft_code
 	FROM bookings.seats s
