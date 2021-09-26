@@ -16,15 +16,18 @@ FROM `bigquery-public-data.chicago_taxi_trips.taxi_trips`
 group by payment_type
 order by 3 desc;
 
--- вариант смонтировать бакет в локальную директорию
+-- mount to local dir
 https://github.com/GoogleCloudPlatform/gcsfuse
+
 -- installing
 https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
--- монтируем в каталог под юзером postgres
+
+-- mount under postgres
 sudo -u postgres
 cd $HOME
 mkdir taxi
 gcsfuse pg13 taxi
+
 -- umount 
 fusermount -u taxi
 

@@ -7,8 +7,8 @@
 6. https://www.vertica.com/
 7. https://github.com/aeuge/Postgres13book/blob/main/scripts/11/bigdata.txt
 8. https://cloud.google.com/bigquery/docs/bq-command-line-tool
-9. https://postgrespro.ru/docs/postgrespro/13/postgres-fdw
-10. https://postgrespro.ru/docs/postgrespro/13/sql-copy
+9. https://www.postgresql.org/docs/13/postgres-fdw.html
+10. https://www.postgresql.org/docs/13/sql-copy.html
 11. https://github.com/dimitri/pgloader
 12. https://github.com/ossc-db/pg_bulkload
 13. https://github.com/GoogleCloudPlatform/gcsfuse

@@ -1,16 +1,15 @@
 # Indexes
-1. https://postgrespro.ru/docs/postgrespro/13/sql-createindex
-2. https://postgrespro.ru/docs/postgrespro/13/gist-implementation#GIST-BUFFERING-BUILD
-3. https://postgrespro.ru/docs/postgrespro/13/gin-implementation#GIN-FAST-UPDATE
-4. https://postgrespro.ru/docs/postgrespro/13/brin-intro
-5. https://postgrespro.ru/docs/postgrespro/13/sql-alterindex
-6. https://postgrespro.ru/docs/postgrespro/13/sql-dropindex
-7. https://postgrespro.ru/docs/postgrespro/13/sql-reindex
-8. https://postgrespro.ru/docs/postgrespro/13/routine-reindex
+1. https://www.postgresql.org/docs/13/sql-createindex.html
+2. https://www.postgresql.org/docs/13/gist.html
+3. https://www.postgresql.org/docs/13/gin.html
+4. https://www.postgresql.org/docs/13/brin.html
+5. https://www.postgresql.org/docs/13/sql-alterindex.html
+6. https://www.postgresql.org/docs/13/sql-dropindex.html
+7. https://www.postgresql.org/docs/13/sql-reindex.html
+8. https://www.postgresql.org/docs/13/routine-reindex.html
 9. https://en.wikipedia.org/wiki/Binary_search_tree
 10. https://www.postgresqltutorial.com/postgresql-sample-database/
-11. https://postgrespro.ru/docs/postgrespro/13/textsearch-indexes
-12. https://postgrespro.ru/docs/postgrespro/13/textsearch-controls
-13. https://postgrespro.ru/docs/postgrespro/13/textsearch
-14. https://postgrespro.ru/docs/postgrespro/12/sql-cluster
+11. https://www.postgresql.org/docs/13/textsearch.html
+12. https://www.postgresql.org/docs/13/textsearch-controls.html
+14. https://www.postgresql.org/docs/13/sql-cluster.html
 
