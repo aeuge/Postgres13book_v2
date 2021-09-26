@@ -13,6 +13,8 @@ sudo nano /etc/postgresql/13/main/postgresql.conf
 -- pg_settings
 SELECT count(*) FROM pg_settings;
 \d+ pg_settings
+SELECT * FROM pg_settings LIMIT 1 \gx
+
 SELECT * FROM pg_settings WHERE name = 'work_mem';
 SHOW work_mem;
 SELECT unit, count(*) FROM pg_settings GROUP BY unit ORDER BY 2 desc;
