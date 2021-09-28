@@ -1,5 +1,5 @@
 -- cockroachDB in GCE
--- Создадим 3 VM - cockroach1, cockroach2, cockroach3
+-- create 3 VM - cockroach1, cockroach2, cockroach3
 gcloud beta compute --project=celtic-house-266612 instances create cockroach1 --zone=us-central1-a --machine-type=e2-medium --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/cloud-platform --image=ubuntu-2010-groovy-v20210119a --image-project=ubuntu-os-cloud --boot-disk-size=50GB --boot-disk-type=pd-ssd --boot-disk-device-name=cockroach1 --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
 gcloud beta compute --project=celtic-house-266612 instances create cockroach2 --zone=us-central1-a --machine-type=e2-medium --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/cloud-platform --image=ubuntu-2010-groovy-v20210119a --image-project=ubuntu-os-cloud --boot-disk-size=50GB --boot-disk-type=pd-ssd --boot-disk-device-name=cockroach2 --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
 gcloud beta compute --project=celtic-house-266612 instances create cockroach3 --zone=us-central1-a --machine-type=e2-medium --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/cloud-platform --image=ubuntu-2010-groovy-v20210119a --image-project=ubuntu-os-cloud --boot-disk-size=50GB --boot-disk-type=pd-ssd --boot-disk-device-name=cockroach3 --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
@@ -11,7 +11,6 @@ gcloud compute ssh cockroach3
 -- 21.1.6 stable
 wget -qO- https://binaries.cockroachdb.com/cockroach-v21.1.6.linux-amd64.tgz | tar  xvz && sudo cp -i cockroach-v21.1.6.linux-amd64/cockroach /usr/local/bin/ && sudo mkdir -p /opt/cockroach && sudo chown aeugene:aeugene /opt/cockroach
 
--- стартуем ноды
 -- --insecure OR generte certs
 mkdir certs my-safe-directory
 cockroach cert create-ca --certs-dir=certs --ca-key=my-safe-directory/ca.key
@@ -48,13 +47,12 @@ cockroach start --certs-dir=certs --advertise-addr=cockroach3 --join=cockroach1,
 -- logs
 tail /home/aeugene/cockroach-data/logs/cockroach.log
 
--- инициализируем кластер
+-- initialize cluster
 cockroach init --certs-dir=certs --host=cockroach1
 
 -- status
 cockroach node status --certs-dir=certs
 
--- зайдем клиентом
 cockroach sql --certs-dir=certs
 
 \l
@@ -81,14 +79,14 @@ cockroach sql --certs-dir=certs
     TotalCost decimal(12,2),
     TotalProfit decimal(12,2)
 );
--- за сколько загрузится 1 000 000? 125Мб
+-- import 1 000 000 lines, 125Мб
 IMPORT INTO test (Region,Country,ItemType,SalesChannel,OrderPriority,OrderDate,OrderID,ShipDate,UnitsSold,UnitPrice,UnitCost,TotalRevenue,TotalCost,TotalProfit) CSV DATA ('gs://postgres13/1000000SalesRecords.csv') WITH DELIMITER = ',', SKIP = '1';
 
 > SELECT count(*) FROM test WHERE unitssold=124;
 > CREATE index test_idx on test(unitssold);
 > SELECT count(*) FROM test WHERE unitssold=124;
 
--- грохнем ноду
+-- kill node
 ps aux | grep cockroach| grep -Ev "grep"
 sudo kill -9 2644
 
@@ -117,7 +115,7 @@ helm install cockroach . --values my_values.yaml
 
 kubectl get all
 kubectl get pv
--- какой под куда уехал
+
 kubectl get all -o wide
 
 kubectl run -it --rm cockroach-client --image=cockroachdb/cockroach --restart=Never --command -- ./cockroach sql --insecure --host=cockroach-cockroachdb-public.default
@@ -127,7 +125,7 @@ kubectl run -it --rm cockroach-client --image=cockroachdb/cockroach --restart=Ne
 > SHOW databases;
 > CREATE DATABASE bank;
 > USE bank;
--- делаем автоматическую генерацию UUID
+-- UUID
 > CREATE TABLE bank.accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       balance DECIMAL
@@ -139,10 +137,10 @@ kubectl run -it --rm cockroach-client --image=cockroachdb/cockroach --restart=Ne
 
 kubectl port-forward cockroach-cockroachdb-0 8080
 http://localhost:8080
--- посмотрим аллоцированные ресурсы в браузере GCP
+
 kubectl top node
 
--- получим доступ из psql
+-- connect from psql
 kubectl port-forward cockroach-cockroachdb-0 26257
 
 psql -h localhost -p 26257 -U root -d defaultdb
@@ -167,7 +165,6 @@ psql -h localhost -p 26257 -U root -d defaultdb
     TotalProfit decimal(12,2)
 );
 
--- за сколько загрузится 1 000 000? 125Мб
 > import INTO test (Region,Country,ItemType,SalesChannel,OrderPriority,OrderDate,OrderID,ShipDate,UnitsSold,UnitPrice,UnitCost,TotalRevenue,TotalCost,TotalProfit) CSV DATA ('gs://postgres13/1000000SalesRecords.csv') WITH DELIMITER = ',', SKIP = '1';
 
 
@@ -177,9 +174,8 @@ psql -h localhost -p 26257 -U root -d defaultdb
 > SELECT count(*) FROM test WHERE unitssold=124;
 
 -- BACKUP
--- чтобы бэкап сработал, нужно создавать ноды с режимом доступа к Cloud API
 BACKUP DATABASE bank TO 'gs://postgres/database-bank-2021-07-28-weekly' AS OF SYSTEM TIME '-10s';
--- в файлы только enterprise
+-- to files only in enterprise
 BACKUP DATABASE bank TO 'file://111.txt' AS OF SYSTEM TIME '-10s';
 
 
@@ -202,11 +198,8 @@ gcloud compute ssh citus1
 gcloud compute ssh citus2
 gcloud compute ssh citus3
 
--- Ставим на них CITUS
--- Кластер на 1 машине
 -- https://docs.citusdata.com/en/stable/installation/single_machine_debian.html#post-install
 
--- на нескольких
 -- https://docs.citusdata.com/en/stable/installation/multi_machine_debian.html#steps-to-be-executed-on-all-nodes
 
 
@@ -254,14 +247,13 @@ sudo update-rc.d postgresql enable
 # add the citus extension - экстеншн ставится для конкретной БД !!
 sudo -i -u postgres psql -c "CREATE EXTENSION citus;"
 
--- активируем ноды на коммутаторе
+-- activate nodes on coordinator node
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus2', 5432);"
 sudo -i -u postgres psql -c "SELECT * FROM master_add_node('citus3', 5432);"
--- проверим, что все подключилось 
+
 sudo -i -u postgres psql -c "SELECT * FROM master_get_active_worker_nodes();"
 
--- Здесь пытался добавить сам координатор как ноду - тоже работет. но не рекомендовано
--- убрать ноду также просто
+-- for remove node from cluster
 -- SELECT master_remove_node('citus1', 5432);
 
 sudo -i -u postgres psql
@@ -281,7 +273,6 @@ CREATE TABLE accounts (
 INSERT INTO accounts (balance)
   VALUES
       (1000.50), (20000), (380), (500), (55000);
--- посмотрим что в других нодах? 
 
 \dt
 SELECT * FROM accounts;
@@ -293,7 +284,6 @@ SELECT * FROM master_get_active_worker_nodes();
 -- before distributing tables, enable some extra features
 SELECT create_distributed_table('accounts', 'id');
 -- error
--- добавим 2 узла
 SELECT * FROM master_add_node('citus2', 5432);
 SELECT * FROM master_add_node('citus3', 5432);
 SELECT create_distributed_table('accounts', 'id');
@@ -304,7 +294,7 @@ SELECT * FROM pg_dist_shard;
 SELECT * FROM accounts_102071;
 
 
--- добавим 4 ноду 
+-- add 4 node
 gcloud beta compute --project=celtic-house-266612 instances create citus4 --zone=us-central1-a --machine-type=e2-medium --subnet=default --network-tier=PREMIUM --no-restart-on-failure --maintenance-policy=TERMINATE --preemptible --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/cloud-platform --image=ubuntu-2010-groovy-v20210720 --image-project=ubuntu-os-cloud --boot-disk-size=100GB --boot-disk-type=pd-ssd --boot-disk-device-name=citus4 --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=none
 gcloud compute ssh citus4
 curl https://install.citusdata.com/community/deb.sh | sudo bash && cd /etc/apt/sources.list.d && sudo nano citusdata_community.list
@@ -327,21 +317,20 @@ CREATE DATABASE bank;
 \c bank
 CREATE EXTENSION citus;
 
--- на координаторе добавим 4 ноду
+-- add 4 node on coordinator
 SELECT * FROM master_add_node('citus4', 5432);
 
--- перебалансируем по нодам
+-- rebalance
 SELECT rebalance_table_shards('accounts');
 
 -- to logs
 cat /var/log/postgresql/postgresql-13-main.log
 
 
--- включить репликацию для надежности
 SHOW citus.shard_replication_factor;
 
 
--- посмотрим bigquery
+-- bigquery
 SELECT count(*) FROM `bigquery-public-data.chicago_taxi_trips.taxi_trips`;
 
 sudo su postgres

@@ -1,13 +1,13 @@
 # backup
 1. https://habr.com/ru/news/t/546264/
 2. https://habr.com/ru/post/267881/
-3. https://postgrespro.ru/docs/postgrespro/13/sql-copy
+3. https://www.postgresql.org/docs/13/sql-copy.html
 4. https://www.postgresql.org/docs/13/app-pgdump.html
-5. https://postgrespro.ru/docs/postgrespro/13/app-pgrestore
-6. https://postgrespro.ru/docs/postgrespro/13/app-pg-dumpall
+5. https://www.postgresql.org/docs/13/app-pgrestore.html
+6. https://www.postgresql.org/docs/13/app-pg-dumpall.html
 7. https://en.wikipedia.org/wiki/Snapshot_(computer_storage)
 8. https://en.wikipedia.org/wiki/DevOps
-9. https://postgrespro.ru/docs/postgrespro/13/app-pgbasebackup
+9. https://www.postgresql.org/docs/13/app-pgbasebackup.html
 10. https://www.enterprisedb.com/edb-docs/d/edb-backup-and-recovery-tool/installation-getting-started/quick-start-guide/2.5.1/index.html
 11. https://www.pgbarman.org/
 12. https://pgbackrest.org/

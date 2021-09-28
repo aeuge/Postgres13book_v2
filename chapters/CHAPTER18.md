@@ -1,8 +1,8 @@
 # replica
-1. https://postgrespro.ru/docs/postgrespro/13/high-availability
-2. https://postgrespro.ru/docs/postgrespro/13/app-pgrewind
+1. https://www.postgresql.org/docs/13/high-availability.html
+2. https://www.postgresql.org/docs/13/app-pgrewind.html
 3. https://www.postgresql.org/docs/13/runtime-config-replication.html
-4. https://postgrespro.ru/docs/postgrespro/13/logical-replication
+4. https://www.postgresql.org/docs/13/logical-replication.html
 5. https://bucardo.org/Bucardo/
 6. https://www.postgrespro.ru/products/postgrespro/enterprise
 7. https://www.2ndquadrant.com/en/resources/postgres-bdr-2ndquadrant/

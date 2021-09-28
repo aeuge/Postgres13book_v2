@@ -3,38 +3,35 @@ sudo mkdir /home/1 && sudo chmod 777 /home/1
 
 sudo -u postgres psql
 
--- создадим табличку для тестов
 CREATE DATABASE backup;
 \c backup
 CREATE TABLE test (i int, col text);
 INSERT INTO test VALUES (1, '123'), (2, '456'), (3, '789');
 
--- сделаем логическую копию
+-- logical copy
 COPY test TO '/home/1/test.csv' CSV HEADER;
 
 \! cat /home/1/test.csv
 
--- восстановим данные в другую табличку
--- ошибка!!!
+-- restore to another table
+-- error!!!
 COPY test2 FROM '/home/1/test.csv' CSV HEADER;
 
--- таблица должна быть создана заранее
+-- the table must be created in advance
 CREATE TABLE test2 (i int, col text);
 COPY test2 FROM '/home/1/test.csv' CSV HEADER;
 SELECT * FROM test2;
 
--- архивируем БД через консольную утилиту
+-- use pg_dump
 exit -- from psql
 sudo -u postgres pg_dump -d backup --create
 sudo -u postgres pg_dump -d backup --create > /home/1/1.sql
 sudo -u postgres pg_dump -d backup --create | gzip > /home/1/backup.gz
 
--- для pg_restore - кастомный сжатый формат
+-- for pg_restore - custom options
 sudo -u postgres pg_dump -d backup -Fc > /home/1/custom.gz
 
--- посмотрим содержимое через cat
-
--- восстановим БД
+-- restore whole DB
 sudo -u postgres psql < /home/1/1.sql
 sudo -u postgres psql
 \c backup
@@ -44,8 +41,8 @@ exit
 echo "DROP DATABASE backup;" | sudo -u postgres psql
 sudo -u postgres psql < /home/1/1.sql
 
--- через pg_restore
--- получим дубликаты данных
+-- pg_restore
+-- get duplicate data
 sudo -u postgres pg_restore /home/1/custom.gz -d backup
 sudo -u postgres psql
 \c backup
@@ -70,20 +67,20 @@ sudo -u postgres psql
 \dt
 
 
--- если перекодировать 
+-- if we need decode to another charset
 pg_dump ... | iconv -f utf-8 -t cp-1251 > dump.sql
 
--- посмотрим на параметры pg_dump && pg_restore
+-- pg_dump && pg_restore
 sudo -u postgres pg_dump --help
 sudo -u postgres pg_restore --help
 
 -- pg_dumpall
 sudo -u postgres pg_dumpall > /home/1/backupall.sql
 
--- Восстановление
+-- restore
 sudo -u postgres psql < /home/1/backupall.sql
 
--- параллельный вариант
+-- parallel workers
 sudo -u postgres pg_dumpall --clean --globals-only > /home/1/globals.sql
 sudo -u postgres pg_dumpall --clean --schema-only > /home/1/schema.sql
 sudo -u postgres pg_dump -d backup --create > /home/1/1.sql
@@ -92,44 +89,43 @@ sudo -u postgres psql < /home/1/schema.sql
 sudo -u postgres psql < /home/1/1.sql
 
 
--- физическая репликация
--- посмотрим параметры
+-- physical replication
 SELECT name, setting FROM pg_settings WHERE name IN ('wal_level','max_wal_senders');
 
 SELECT * FROM pg_replication_slots;
 
--- Необходимо настроить файервол в файле pg_hba.conf для получения доступа извне localhost
+-- change firewall options in pg_hba.conf
 SELECT type, database, user_name, address, auth_method 
 FROM pg_hba_file_rules() WHERE DATABASE = '{replication}';
 
 
--- Создадим 2 кластер
+-- let`s create 2 cluster
 sudo -u postgres pg_createcluster -d /var/lib/postgresql/13/main2 13 main2
--- Удалим оттуда файлы
+
+-- delete files
 sudo -u postgres rm -rf /var/lib/postgresql/13/main2
--- Сделаем бэкап нашей БД
+
+-- Let's make a backup of our database
 sudo -u postgres pg_basebackup -p 5432 -D /var/lib/postgresql/13/main2
--- удалим ненужно уже табличное пространство ts в /home/postgres/tmptblspace
+
+-- удалим ненужноe уже табличное пространство ts /home/postgres/tmptblspace
 sudo -u postgres psql
 \db
 DROP TABLESPACE ts;
 
--- есть ли объекты в нашем ts
 SELECT c.relname, t.spcname 
 FROM pg_class c 
   JOIN pg_tablespace t ON c.reltablespace = t.oid 
 WHERE t.spcname = 'ts';
 
--- смотрим БД подробно
 \l+
 DROP DATABASE app;
 DROP TABLESPACE ts;
--- Сделаем бэкап нашей БД
+
 sudo -u postgres pg_basebackup -p 5432 -D /var/lib/postgresql/13/main2
 
--- Стартуем кластер
 sudo -u postgres pg_ctlcluster 13 main2 start
--- Смотрим как стартовал
+
 pg_lsclusters
 
 sudo -u postgres psql --port 5433
@@ -137,7 +133,6 @@ sudo -u postgres psql --port 5433
 \c backup
 select * from test;
 
--- файловый архив
 SELECT name, setting FROM pg_settings WHERE name IN ('archive_mode','archive_command','archive_timeout');
 
 

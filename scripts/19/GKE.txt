@@ -56,7 +56,7 @@ cat service.yaml
 kubectl apply -f deployment.yaml -f service.yaml
 kubectl get all
 
--- можно прокинуть порт на хостовую машину
+-- you can forward the port to the host machine
 kubectl port-forward svc/hello-service 10000:9000
 curl http://127.0.0.1:10000/
 
@@ -83,43 +83,40 @@ cat ingress.yaml
 kubectl apply -f ingress.yaml
 kubectl get ing
 
--- Если просто урлу пойти, то будет 404, потому что Host-а нет.
+-- if we use URL - 404, because we have no Host, only IP
 minikube ip
 curl http://192.168.1.73/myapp
 
 curl -H 'Host: hello.world' http://192.168.1.73/myapp
 
--- можем прописать в хостах
+-- add string to the host file
 sudo nano /etc/hosts
 curl http://hello.world/myapp
 
 
 -- STATEFULSETS
 
--- Сначала удалим все. 
-
 kubectl delete all --all
 
--- Для постгреса сделаем такой stateful сет 
+-- make stateful set 
 cat postgres.yaml
 ccat postgres.yaml
 
--- Прямо сейчас нет ни persistent volume (хранилища), 
+-- now we have no persistent volume 
 kubectl get pv
 
--- ни persistent volume claim (запроса на хранилище)
+-- no persistent volume claim 
 kubectl get pvc
 
--- применяем манифест. 
 kubectl apply -f postgres.yaml
 
 kubectl get all
 
--- Видим, что создался persistent volume и привязался к pvc 
+-- now we have persistent volume and pvc 
 kubectl get pv
 kubectl get pvc
 
--- Теперь можем зайти в БД по кредам, которые оставляли в ENV переменных контейнера. 
+-- now we can connect to DB with container ENV 
 env:
           - name: POSTGRES_DB
             value: myapp
@@ -130,14 +127,14 @@ env:
 
 psql -h 192.168.1.73 -p 31321 -U myuser -W myapp
 
--- Если удалим под, он все-равно создастся, и данные все равно будут доступны. 
+-- If we delete the pod, it will still be created, and the data will still be available
 kubectl delete pod postgres-statefulset-0
 
 kubectl get all
 
 psql -h 192.168.1.73 -p 31321 -U myuser -W myapp
 
--- даже при удалении стейтфуллсет данные остануться на месте
+-- even if the statefulset is deleted, the data will remain in place
 kubectl delete -f postgres.yaml
 
 kubectl get pvc
@@ -150,12 +147,12 @@ gcloud beta container --project "celtic-house-266612" clusters create "postgres"
 
 gcloud container clusters list
 
--- развернем Постгрес в кубике от Севералнайнс
-
 
 cat postgres-configmap.yaml
--- по умолчанию ReadWriteMany
--- не работает, поставим ReadWriteOnce и уберем маунт на локальный диск /mnt/data и убираем сторадж моде
+-- on default ReadWriteMany not worked
+-- change to the ReadWriteOnce
+-- rewrite mount to the local storage /mnt/data
+-- remove storage mode
 nano postgres-storage.yaml
 
 cat postgres-storage.yaml
@@ -174,11 +171,10 @@ psql -U postgresadmin -d postgres
 CREATE DATABASE test;
 \l
 
--- для получения доступа
+
 kubectl port-forward service/postgres 5432:5432
 
--- Для доступа извне нужно юзать LoadBalancer. NodePort только для доступа изнутри GCP
--- посмотрим лоад балансер
+-- for access from outside use LoadBalancer. NodePort only for inside GCP
 cat postgres-service2.yaml
 kubectl apply -f postgres-service2.yaml
 psql -h 35.222.104.155 -U postgresadmin -W -d postgresdb

@@ -1,5 +1,5 @@
 -- HA clusters
--- PostgresHA GKE - уменьшаем мощность машины и указываем только 1 зону 1 региона для экономии
+-- PostgresHA GKE 
 
 gcloud beta container --project "celtic-house-266612" clusters create "postgresha" --zone "us-central1-c" --no-enable-basic-auth --cluster-version "1.19.9-gke.1900" --release-channel "None" --machine-type "e2-medium" --image-type "COS_CONTAINERD" --disk-type "pd-ssd" --disk-size "30" --metadata disable-legacy-endpoints=true --max-pods-per-node "110" --preemptible --num-nodes "3" --enable-stackdriver-kubernetes --enable-ip-alias --network "projects/celtic-house-266612/global/networks/default" --subnetwork "projects/celtic-house-266612/regions/us-central1/subnetworks/default" --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations "us-central1-c"
 
@@ -8,7 +8,6 @@ postgresha  us-central1-c  1.19.9-gke.1900  35.194.59.184  e2-medium     1.19.9-
 
 gcloud container clusters list
 kubectl get nodes
--- kubectl get all -- ошибка, нужно переинициализировать кластер, если делать через веб интерфейс
 -- https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl
 -- gcloud container clusters get-credentials postgresha --zone us-central1-c
 
@@ -36,21 +35,19 @@ kubectl get pv
 kubectl get all -o wide
 gcloud compute disks list
 
--- достанем пароль
+-- extract password
 export POSTGRES_PASSWORD=$(kubectl get secret --namespace default pgsql-ha-postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 echo $POSTGRES_PASSWORD
 kubectl port-forward --namespace default svc/pgsql-ha-postgresql-ha-pgpool 5432:5432
--- сразу без ввода пароля интерактивно
+
 PGPASSWORD=W8gBnN9UEb psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 
--- зайдем на pgpool
 kubectl exec -it pod/pgsql-ha-postgresql-ha-pgpool-56458bdc5d-82kkw -- bash
 cat /opt/bitnami/pgpool/conf/pgpool.conf
--- настройка pgpool
 -- http://support.ptc.com/help/thingworx_hc/thingworx_8_hc/ru/index.html#page/ThingWorx/Help/ThingWorxHighAvailability/InstallingandConfiguringPostgreSQLHA.html
 
 
--- как добавить внешний лоад балансер?
+-- add load balancer
 export POSTGRES_PASSWORD=$(kubectl get secret --namespace default pgsql-ha-postgresql-ha-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 export REPMGR_PASSWORD=$(kubectl get secret --namespace "default" pgsql-ha-postgresql-ha-postgresql -o jsonpath="{.data.repmgr-password}" | base64 --decode)
 export ADMIN_PASSWORD=$(kubectl get secret --namespace "default" pgsql-ha-postgresql-ha-pgpool -o jsonpath="{.data.admin-password}" | base64 --decode)
@@ -60,17 +57,17 @@ helm upgrade pgsql-ha bitnami/postgresql-ha --set service.type=LoadBalancer --se
 export SERVICE_IP=$(kubectl get svc --namespace default pgsql-ha-postgresql-ha-pgpool --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
 echo $SERVICE_IP
 PGPASSWORD=W8gBnN9UEb psql -h $SERVICE_IP -p 5432 -U postgres -d postgres
+
 -- 2 case
 PGPASSWORD=$POSTGRES_PASSWORD psql -h $SERVICE_IP -p 5432 -U postgres -d postgres
 
 gcloud container clusters delete postgresha --zone us-central1-c
 
---посмотрим, что осталось от кластера
 gcloud compute disks list
 
 
 -- Patroni
-Postgres operator GKE - уменьшаем мощность машины и указываем только 1 зону 1 региона, иначе не влезем в бесплатную квоту
+Postgres operator GKE
 
 gcloud beta container --project "celtic-house-266612" clusters create "postgresoperator" --zone "us-central1-c" --no-enable-basic-auth --cluster-version "1.19.9-gke.1900" --release-channel "None" --machine-type "e2-medium" --image-type "COS_CONTAINERD" --disk-type "pd-ssd" --disk-size "30" --metadata disable-legacy-endpoints=true --max-pods-per-node "110" --preemptible --num-nodes "3" --enable-stackdriver-kubernetes --enable-ip-alias --network "projects/celtic-house-266612/global/networks/default" --subnetwork "projects/celtic-house-266612/regions/us-central1/subnetworks/default" --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --enable-shielded-nodes --node-locations "us-central1-c"
 
@@ -78,20 +75,17 @@ NAME              LOCATION       MASTER_VERSION   MASTER_IP       MACHINE_TYPE  
 postgresoperator  us-central1-c  1.19.9-gke.1900  34.136.139.222  e2-medium     1.19.9-gke.1900  3          RUNNING
 
 -- postgres operator
--- посмотрим существующие уже ресурсы
 kubectl api-resources
 
 git clone https://github.com/zalando/postgres-operator
 cd postgres-operator
 helm install postgres-operator ./charts/postgres-operator
 
--- убедимся, что postgres-operator стартовал:
 kubectl --namespace=default get pods -l "app.kubernetes.io/name=postgres-operator"
 
--- посмотрим, что ресурс постгрес появился
 kubectl api-resources | grep postgres
 
--- поставим UI к постгрес оператору
+-- install GUI for postgres operator
 helm install postgres-operator-ui ./charts/postgres-operator-ui
 
 -- To verify that postgres-operator has started, run:
@@ -100,12 +94,12 @@ kubectl --namespace=default get pods -l "app.kubernetes.io/name=postgres-operato
 kubectl get all
 kubectl port-forward svc/postgres-operator-ui 8081:80
 
--- создадим кластер через UI
+-- make cluster from UI
 name - minimal
 instances - 2
 галочка на pg_bouncer
 
--- посмотрим как развернулось
+-- 
 kubectl get all
 
 
@@ -116,15 +110,15 @@ kubectl describe pod/acid-minimal-pooler-5fd6d47fd4-krvlr
 -- Warning  FailedScheduling  61s (x4 over 3m52s)  default-scheduler  0/3 nodes are available: 3 Insufficient cpu.
 
 
--- сколько задействовано ресурсов
+--
 kubectl get nodes
 kubectl top node gke-postgresoperator-default-pool-0a871821-9h9f
 
--- а лимиты?
+--
 kubectl describe node gke-postgresoperator-default-pool-0a871821-9h9f
 
 
--- уменьшим требования
+-- decrease limits
 kubectl get deployment
 kubectl edit deployment acid-minimal-pooler
 
@@ -145,13 +139,12 @@ psql -U postgres -h localhost
 SELECT inet_server_addr();
 \l
 
--- зайдем на мастера
 kubectl exec -it pod/acid-minimal-0 -- bash
 psql -U postgres
 
 patronictl -c postgres.yml list
 
--- зайдем на пулер
+-- go to the pooler
 echo $PGPASSWORD
 
 kubectl exec -it pod/acid-minimal-pooler-79d8cd5646-8gw6q -- psql -U postgres -h localhost sslmode=require -W
@@ -160,7 +153,7 @@ kubectl exec -it pod/acid-minimal-pooler-79d8cd5646-8gw6q -- sh
 df
 pgbouncer -h
 
--- убьем мастер
+-- kill primary
 kubectl delete pod/acid-minimal-0
 
 
