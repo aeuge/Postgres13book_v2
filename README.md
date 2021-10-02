@@ -2,6 +2,7 @@
 # доработанное, rev 2
 # Это вторая редакция – уменьшено количество теоретических материалов, добавлено немного практики и ссылок на дополнительное изучение
 # Author https://aristov.tech
+# https://aristov.tech/#orderbook
 # Оглавление
 1. [Установка PostgreSQL 13](https://github.com/aeuge/Postgres13book/blob/main/chapters/CHAPTER01.md)
 2. [Физический уровень](https://github.com/aeuge/Postgres13book/blob/main/chapters/CHAPTER02.md)
