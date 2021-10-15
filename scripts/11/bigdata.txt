@@ -58,7 +58,7 @@ CREATE TABLE taxi_trips(unique_key text
 ,dropoff_longitude float
 ,dropoff_location text);
 
-cd /home/aeugene/taxi
+cd /var/lib/postgresql/taxi
 for f in *.csv*; do psql -d taxi -c "\\COPY taxi_trips FROM PROGRAM 'cat $f' CSV HEADER"; done
 
 \timing
