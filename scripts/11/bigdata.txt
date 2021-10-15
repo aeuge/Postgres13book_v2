@@ -23,7 +23,7 @@ https://github.com/GoogleCloudPlatform/gcsfuse
 https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
 
 -- mount under postgres
-sudo -u postgres
+sudo su postgres
 cd $HOME
 mkdir taxi
 gcsfuse pg13 taxi
