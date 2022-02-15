@@ -2,6 +2,7 @@
 ## Второе издание - актуализированы материалы, уменьшено количество теоретических материалов, добавлено много новой практики и ссылок на дополнительное изучение
 ### Author https://aristov.tech
 ### Заказ второго издания книги Постгрес13 https://aristov.tech/#orderbook
+### Новая книга Постгрес 14, акутализированы все материалы, добавлено много новой практики https://github.com/aeuge/Postgres14book
 # Оглавление
 1. [Установка PostgreSQL 13](https://github.com/aeuge/Postgres13book_v2_v2/blob/main/chapters/CHAPTER01.md)
 2. [Физический уровень](https://github.com/aeuge/Postgres13book_v2/blob/main/chapters/CHAPTER02.md)
